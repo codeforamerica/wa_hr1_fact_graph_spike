@@ -120,8 +120,10 @@ module HouseholdFacts
       all_of_fact :in_household_as_spouse, :is_spouse, :lives_with_renewer,
         per_entity: :household_members
 
+      # A spouse can't be a tax dependent, so we never ask whether the renewer claims theirs.
       all_of_fact :in_household_as_renewers_tax_dependent,
         dep(:renewer_uses_tax_filer_rules, from: :household),
+        no(:is_spouse),
         :claimed_as_dependent_by_renewer,
         per_entity: :household_members
 

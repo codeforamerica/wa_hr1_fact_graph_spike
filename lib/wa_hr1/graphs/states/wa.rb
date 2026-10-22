@@ -11,6 +11,9 @@ module FactGraphs
         # Any one month in the 6 before renewal (HCA analysis; ADR-0002).
         constant(:renewal_lookback_months) { 6 }
 
+        # "First applicable renewal month is February 2027" (HCA analysis, state options table).
+        constant(:first_renewal_month_with_work_requirement) { "2027-02" }
+
         # HCA's credit-hour table, used as published: index 0 is 1 credit hour.
         # Credits outside the table (more than 6, or fractional) have no value yet.
         constant(:monthly_hours_by_credit_hours) { [13, 26, 39, 52, 66, 78] }

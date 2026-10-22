@@ -88,3 +88,29 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
 8. **Unknowns can point at one entity.** We name a specific entity as `[fact, entity_id]` in an Error's
    `fact_dependency_unmet`, and the walker follows only that entity. fact_graph doesn't look inside those lists, so
    this works today, but it's our convention, not the library's.
+9. **A missing section hides its questions.** If the input has no `work_requirement` hash at all, each of its 16
+   questions fails as "the section is missing," so the walker reports one path, `[:work_requirement]`. With an empty
+   hash, it reports all 16. Whatever builds the input should always send every section (`{}` or `[]`).
+10. **`Evaluator.input_errors` crashed** with `FrozenError` when two facts reported an error for the same input path.
+    This predates our changes; fixed in codeforamerica/fact_graph#36.
+11. **Resolvers can't see which entity they're running for**, so a resolver can't report a bad input at its full
+    path (like `[:months, 2, :credit_hours]`). Validate in the input schema instead, which reports the full path.
+
+## Policy findings
+
+- **The seasonal-worker test only matters for income 7 to 12 months back.** At renewal, any one of the 6 lookback months
+  is enough. If the average over those same 6 months is at least $580, at least one of them is too, and that month
+  already meets the requirement. The federal rule averages the 6 months before *each* month (42 CFR 435.552(g)), so we
+  implement that: a seasonal worker can use income from up to 12 months before renewal.
+- **Spouses can't be tax dependents.** Encoding that removed a question HCA's own Mark and Gene example would otherwise
+  have triggered.
+
+## Interpretations to confirm
+
+- **Exclusions and exemptions are one yes/no each, meaning "in any of the 6 months before renewal."** HCA's analysis
+  says either counts in any one month during the period.
+- **Hours from income applies only when the person says they don't know their hours.** It's the renewer's own countable
+  earned income ÷ $7.25, rounded down.
+- **"The preceding 6 months" for seasonal workers excludes the month itself.**
+- **The first renewal with a work requirement is February 2027** (HCA's state options table).
+- **Credits are limited to 0–6 when enrolled less than half-time**, matching HCA's table.

@@ -19,6 +19,10 @@ module RenewerFacts
         input [:renewer, :pregnant], value: :bool?
       end
 
+      fact :has_medicare do
+        input [:renewer, :has_medicare], value: :bool?
+      end
+
       fact :expected_unborn_children do
         input [:renewer, :expected_unborn_children], value: :integer, gteq?: 1
       end

@@ -13,6 +13,7 @@ module FactGraphs
     include RenewerFacts
     include HouseholdFacts
     include IncomeFacts
+    include WorkRequirementFacts
 
     in_module :standards do
       constant(:work_requirement_start_date) { "2027-01-01" }
