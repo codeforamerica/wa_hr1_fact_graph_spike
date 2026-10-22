@@ -80,3 +80,11 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
    way. Order doesn't matter in `all_of` / `any_of`: one known false (or true) decides them. What helps is adding
    dependencies we usually already know that can rule a branch out. When several unknowns remain, all of them are
    named, and choosing which to ask first is up to the agent.
+7. **A per-entity fact that depends on a per-entity fact of a *different* entity type silently gets the wrong
+   entity.** fact_graph picks the dependency's entity with the same ID, so a month's fact would see the household
+   member whose index equals the month's index. There's no error. We avoid it by publishing per-member values as an
+   array from a fact that isn't per-entity (`household.income_counts_by_member`), which month facts can read. fact_graph
+   should probably refuse this kind of dependency, or let a fact say which entity type it's indexing.
+8. **Unknowns can point at one entity.** We name a specific entity as `[fact, entity_id]` in an Error's
+   `fact_dependency_unmet`, and the walker follows only that entity. fact_graph doesn't look inside those lists, so
+   this works today, but it's our convention, not the library's.

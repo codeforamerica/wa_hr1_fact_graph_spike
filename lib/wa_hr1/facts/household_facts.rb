@@ -231,6 +231,22 @@ module HouseholdFacts
         no(:renewer_is_child_or_tax_dependent),
         dep(:required_to_file_taxes, from: :renewer)
 
+      # Per-member values for facts about months, which can't depend on per-member facts directly.
+      # Indexed by member, with nil where it isn't known yet.
+      {income_counts_by_member: :income_counts, is_child_or_tax_dependent_by_member: :is_child_or_tax_dependent}.each do |name, member_fact|
+        fact name do
+          input :household_members do
+            required(:household_members).array(:hash)
+          end
+          dependency member_fact, from: :household_members
+
+          proc do
+            ids = (0...data[:input][:household_members].count).to_a
+            values_by_index(data[:dependencies][member_fact], ids)
+          end
+        end
+      end
+
       # Household size: the renewer, everyone else in the household, and unborn children.
       fact :size, allow_unmet_dependencies: true do
         input :household_members do

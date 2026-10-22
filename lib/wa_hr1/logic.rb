@@ -64,12 +64,22 @@ module WaHr1
       FactGraph::Error.new(fact_bad_inputs: bad_inputs, fact_dependency_unmet: unmet)
     end
 
+    # An unknown waiting on one entity's value of a per-entity fact. See WaHr1::Unknowns.
+    def unknown_entity(module_name, fact_name, entity_id)
+      FactGraph::Error.new(fact_bad_inputs: {}, fact_dependency_unmet: {module_name => [[fact_name, entity_id]]})
+    end
+
     def with_missing_entities(values_by_id, entity_ids, fact)
       module_name, fact_name = fact
       missing = entity_ids - values_by_id.keys
-      return values_by_id.values if missing.empty?
+      values_by_id.values + missing.map { |id| unknown_entity(module_name, fact_name, id) }
+    end
 
-      values_by_id.values + [FactGraph::Error.new(fact_bad_inputs: {}, fact_dependency_unmet: {module_name => [fact_name]})]
+    # A per-entity fact's values as an array indexed by entity ID, with nil where the value is
+    # unknown. For publishing per-entity values to facts about a different kind of entity, which
+    # fact_graph can't connect directly.
+    def values_by_index(values_by_id, entity_ids)
+      entity_ids.map { |id| values_by_id.fetch(id, nil) }
     end
 
     def check_booleans(values)
