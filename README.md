@@ -35,7 +35,7 @@ bundle exec exe/wa-hr1-evaluate --fact work_requirement.meets_work_requirement e
 |---|---|
 | `likely_eligible` | Apple Health for Adults: `true`, `false`, or `null` if we can't tell yet. |
 | `likely_eligible_for_family_coverage_instead` | `true` if they'd be considered for family coverage first, which has no work requirement. |
-| `next_questions` | The inputs still needed to decide the target fact (`likely_eligible` unless `--fact` says otherwise). Each has its `path`, a `status` of `missing` (not asked yet) or `invalid` (answered with something the graph can't use), and the graph's `messages`. |
+| `next_questions` | The inputs still needed to decide the target fact (`likely_eligible` unless `--fact` says otherwise). Each has its `path`, a `status` of `missing` (not asked yet) or `invalid` (answered with something the graph can't use), the graph's `messages`, and the input's `description` and `schema` (type, allowed values, list item structure) from the input schema. |
 | `facts` | Every fact's value, for explaining an answer: unknowns are `null`, and per-person and per-month facts are arrays in the same order as the input lists. |
 
 Every output includes `protocol_version`. The command follows ADR-0003 in `samesite2026-app-02`:

@@ -46,12 +46,34 @@ module WaHr1
     end
 
     # "missing" when the input doesn't have the path; "invalid" when it does but the value was rejected.
+    # One input still needed. description and schema come from the input JSON Schema, so an agent
+    # knows what the question means and which values it accepts.
     def question(path, input, messages)
+      schema = schema_for(path)
       {
         path: path.map { _1.is_a?(Symbol) ? _1.to_s : _1 },
         status: present?(input, path) ? "invalid" : "missing",
-        messages: messages.fetch(path, Set[]).to_a
+        messages: messages.fetch(path, Set[]).to_a,
+        description: schema&.fetch("description", nil),
+        schema:
       }
+    end
+
+    # The JSON Schema fragment for an input path. Integer segments index into a list's items.
+    def schema_for(path)
+      path.reduce(input_schema) do |node, key|
+        return nil if node.nil?
+
+        if key.is_a?(Integer)
+          node["items"]
+        else
+          node.dig("properties", key.to_s)
+        end
+      end
+    end
+
+    def input_schema
+      @input_schema ||= InputSchema.generate(GRAPH).except("$schema", "title", "description")
     end
 
     def present?(input, path)
