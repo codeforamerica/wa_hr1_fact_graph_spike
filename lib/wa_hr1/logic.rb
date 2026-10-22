@@ -43,6 +43,17 @@ module WaHr1
       all_of(with_missing_entities(values_by_id, entity_ids, fact))
     end
 
+    # Not, keeping unknowns unknown.
+    def negate(value) = unknown?(value) ? value : !check_booleans([value]).first
+
+    # The values for every entity, or unknown if any entity's value is unknown. For aggregates,
+    # like a count or a sum, that need every entity.
+    def every_entity(values_by_id, entity_ids:, fact:)
+      values = with_missing_entities(values_by_id, entity_ids, fact)
+      unknowns = values.select { unknown?(_1) }
+      unknowns.empty? ? values_by_id : merge_unknowns(unknowns)
+    end
+
     def merge_unknowns(errors)
       bad_inputs = {}
       unmet = {}
@@ -70,3 +81,7 @@ module WaHr1
     end
   end
 end
+
+# Resolvers run with a FactGraph::DataContainer as self, so this lets them call any_of, all_of,
+# and the rest directly.
+FactGraph::DataContainer.include(WaHr1::Logic)

@@ -68,3 +68,15 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
    changing in fact_graph for facts that opt in to `allow_unmet_dependencies`.
 3. **`allow_unmet_dependencies` also lets a resolver run when its own input is invalid**, so those resolvers must
    check their inputs (`next data_errors unless ...`).
+4. **A fact can't depend on two facts with the same name from different modules.** Dependencies are keyed by fact
+   name alone (there's a TODO about this in `fact.rb`). The household rules hit this with the renewer's `under_19` and
+   a member's `under_19`. We worked around it with an intermediate fact (`renewer_is_nonfiler_under_19`), which is the
+   kind of small fact we want anyway.
+5. **Resolvers can't reach shared helpers without a monkeypatch.** They run with a `FactGraph::DataContainer` as
+   `self`, so `logic.rb` includes our helpers into that class. A supported hook for this would be cleaner.
+6. **The next-question walker exposes silly questions, and we fix them in the graph.** The first household version
+   asked whether Maya's mom claims Maya's dad as a tax dependent. Ruling out the claimer and the claimer's spouse
+   before asking (in `in_household_as_renewers_claimers_tax_dependent`) removed it. Expect to tune the graph this
+   way. Order doesn't matter in `all_of` / `any_of`: one known false (or true) decides them. What helps is adding
+   dependencies we usually already know that can rule a branch out. When several unknowns remain, all of them are
+   named, and choosing which to ask first is up to the agent.

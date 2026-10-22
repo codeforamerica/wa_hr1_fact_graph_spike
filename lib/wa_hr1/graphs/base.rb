@@ -8,6 +8,11 @@ module FactGraphs
   # Values that cross the graph boundary must survive a JSON round trip: money is integer cents,
   # dates and months are ISO 8601 strings, and enums are strings.
   class Base < FactGraph::Graph
+    extend WaHr1::Macros
+
+    include RenewerFacts
+    include HouseholdFacts
+
     in_module :standards do
       constant(:work_requirement_start_date) { "2027-01-01" }
 
