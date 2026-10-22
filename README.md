@@ -20,6 +20,55 @@ bundle install
 bundle exec rspec
 ```
 
+## Trying it
+
+```sh
+bundle exec bin/evaluate examples/start.json
+bundle exec bin/evaluate examples/maya_claimed_by_parents.json
+echo '{"renewer": {"renewal_month": "2027-03", "age": 24}}' | bundle exec bin/evaluate
+bundle exec bin/evaluate --fact work_requirement.meets_work_requirement examples/maya_less_than_half_time.json
+```
+
+`bin/evaluate` reads renewal input as JSON (a file, or stdin) and writes JSON:
+
+| Field | What it is |
+|---|---|
+| `likely_eligible` | Apple Health for Adults: `true`, `false`, or `null` if we can't tell yet. |
+| `likely_eligible_for_family_coverage_instead` | `true` if they'd be considered for family coverage first, which has no work requirement. |
+| `next_questions` | The inputs still needed to decide the target fact (`likely_eligible` unless `--fact` says otherwise). Each has its `path`, a `status` of `missing` (not asked yet) or `invalid` (answered with something the graph can't use), and the graph's `messages`. |
+| `facts` | Every fact's value, for explaining an answer: unknowns are `null`, and per-person and per-month facts are arrays in the same order as the input lists. |
+
+### The input schema
+
+`schema/input.schema.json` is a JSON Schema for the input, with a description of each field written for the agent
+filling it in. It's generated from the graph's own input definitions (`bin/input-schema`), plus the descriptions in
+`lib/wa_hr1/input_descriptions.rb`. The tests fail if any input lacks a description or the checked-in copy is out of
+date. Regenerate it with:
+
+```sh
+bundle exec bin/input-schema > schema/input.schema.json
+```
+
+Nothing in the schema is required. A missing answer is a question to ask, and `next_questions` says which ones matter.
+
+## Building the input
+
+The input has two kinds of sections, and they're treated differently (`lib/wa_hr1/input.rb`):
+
+- **Hash sections (`renewer`, `work_requirement`): always send them, as `{}` if nothing is known.** Each key is a
+  separate question. If a section is missing entirely, every question in it fails as "the section is missing," and
+  the next-question walker can only report the section, not the questions in it. `WaHr1::Input.with_sections(input)`
+  adds any that are missing.
+- **List sections (`household_members`, `months`): send them only once you know what's in them.** An empty list is
+  an answer: `household_members: []` means nobody else is in the household. While a list is missing, the walker asks
+  for it.
+
+Other conventions:
+- Money is integer cents.
+- Months are `"YYYY-MM"` and dates are `"YYYY-MM-DD"`.
+- Enums are strings.
+- An income item without `household_member` is the renewer's.
+
 ## Design
 
 Sources are indexed in the app repo's `docs/README.md`. The main ones are the WAC rules in `docs/resources/wac-*.txt`,
@@ -37,17 +86,17 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
   - `FactGraphs::States::Wa`: Washington's choices.
   - `FactGraphs::Wa::IncomeStandardsOct2026`: one income-standards period, and the graph we evaluate.
 
-### Planned modules
+### Modules
 
 | Module | What it decides |
 |---|---|
 | `standards` | Constants: income limits, $580, 80 hours, the credit-hour table, the federal minimum wage. |
-| `general` | Age, Medicare, other mandatory programs, residency, SSN. |
+| `renewer` | What the renewer tells us about themselves, including the renewal month. |
 | `household` | Who's in the renewer's household (WAC 182-506-0010/-0012); household size; whose income counts (WAC 182-509-0360). |
 | `income` | Countable monthly income from tagged income items, including pay frequency (WAC 182-509-0310) and exclusions (0335, 0340); the income limit. |
 | `immigration` | H.R. 1's qualified noncitizen definition, the 5-year bar and its exemptions. |
 | `work_requirement` | Exclusions, exemptions, and per-month activities, including the seasonal-worker average and hours from income. |
-| `eligibility` | `likely_eligible`, and `likely_eligible_for_family_coverage_instead`. |
+| `eligibility` | Age, Medicare, other mandatory coverage; `likely_eligible` (Apple Health for Adults) and `likely_eligible_for_family_coverage_instead`. |
 
 ### Shortcuts
 
@@ -68,3 +117,63 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
    changing in fact_graph for facts that opt in to `allow_unmet_dependencies`.
 3. **`allow_unmet_dependencies` also lets a resolver run when its own input is invalid**, so those resolvers must
    check their inputs (`next data_errors unless ...`).
+4. **A fact can't depend on two facts with the same name from different modules.** Dependencies are keyed by fact
+   name alone (there's a TODO about this in `fact.rb`). The household rules hit this with the renewer's `under_19` and
+   a member's `under_19`. We worked around it with an intermediate fact (`renewer_is_nonfiler_under_19`), which is the
+   kind of small fact we want anyway.
+5. **Resolvers can't reach shared helpers without a monkeypatch.** They run with a `FactGraph::DataContainer` as
+   `self`, so `logic.rb` includes our helpers into that class. A supported hook for this would be cleaner.
+6. **The next-question walker exposes silly questions, and we fix them in the graph.** The first household version
+   asked whether Maya's mom claims Maya's dad as a tax dependent. Ruling out the claimer and the claimer's spouse
+   before asking (in `in_household_as_renewers_claimers_tax_dependent`) removed it. Expect to tune the graph this
+   way. Order doesn't matter in `all_of` / `any_of`: one known false (or true) decides them. What helps is adding
+   dependencies we usually already know that can rule a branch out. When several unknowns remain, all of them are
+   named, and choosing which to ask first is up to the agent.
+7. **A per-entity fact that depends on a per-entity fact of a *different* entity type silently gets the wrong
+   entity.** fact_graph picks the dependency's entity with the same ID, so a month's fact would see the household
+   member whose index equals the month's index. There's no error. We avoid it by publishing per-member values as an
+   array from a fact that isn't per-entity (`household.income_counts_by_member`), which month facts can read. fact_graph
+   should probably refuse this kind of dependency, or let a fact say which entity type it's indexing.
+8. **Unknowns can point at one entity.** We name a specific entity as `[fact, entity_id]` in an Error's
+   `fact_dependency_unmet`, and the walker follows only that entity. fact_graph doesn't look inside those lists, so
+   this works today, but it's our convention, not the library's.
+9. **A missing section hides its questions.** If the input has no `work_requirement` hash at all, each of its 16
+   questions fails as "the section is missing," so the walker reports one path, `[:work_requirement]`. With an empty
+   hash, it reports all 16. Whatever builds the input should always send every section (`{}` or `[]`).
+10. **`Evaluator.input_errors` crashed** with `FrozenError` when two facts reported an error for the same input path.
+    This predates our changes; fixed in codeforamerica/fact_graph#36.
+11. **Resolvers can't see which entity they're running for**, so a resolver can't report a bad input at its full
+    path (like `[:months, 2, :credit_hours]`). Validate in the input schema instead, which reports the full path.
+12. **Some conditions are follow-ups, and naming every unknown asks them too early.** With immigration status unknown,
+    `all_of` also named the permanent-resident follow-ups. `gated_all_of` names only the first unknown, so follow-ups
+    wait for their gate; it's used where each condition only matters once the one before it is true.
+13. **dry-schema can emit JSON Schema**, so the input schema is generated from the graph and can't drift from it. It
+    needed small fixes: Ruby regex anchors, and dropping `required`.
+
+## Policy findings
+
+- **The seasonal-worker test only matters for income 7 to 12 months back.** At renewal, any one of the 6 lookback months
+  is enough. If the average over those same 6 months is at least $580, at least one of them is too, and that month
+  already meets the requirement. The federal rule averages the 6 months before *each* month (42 CFR 435.552(g)), so we
+  implement that: a seasonal worker can use income from up to 12 months before renewal.
+- **Spouses can't be tax dependents.** Encoding that removed a question HCA's own Mark and Gene example would otherwise
+  have triggered.
+
+## Interpretations to confirm
+
+- **Exclusions and exemptions are one yes/no each, meaning "in any of the 6 months before renewal."** HCA's analysis
+  says either counts in any one month during the period.
+- **Hours from income applies only when the person says they don't know their hours.** It's the renewer's own countable
+  earned income ÷ $7.25, rounded down.
+- **"The preceding 6 months" for seasonal workers excludes the month itself.**
+- **The first renewal with a work requirement is February 2027** (HCA's state options table).
+- **Credits are limited to 0–6 when enrolled less than half-time**, matching HCA's table.
+- **The 5-year bar is counted in months.** Someone who became an LPR in March 2022 meets it at a March 2027 renewal,
+  whatever the day.
+- **Cuban/Haitian entrants and COFA migrants aren't subject to the 5-year bar.** HCA's fact sheet lists Cuban/Haitian
+  entrants as exempt, and federal law has exempted COFA migrants since 2020.
+- **Someone considered for family coverage first isn't `likely_eligible` for the adult program**, even when they'd
+  otherwise qualify. `likely_eligible_for_family_coverage_instead` is the fact to show them.
+- **Not modeled:** SSN exceptions, residency intent and institutional residency, incarceration (Washington suspends
+  coverage rather than ending it), assigning medical support rights, and family coverage's own requirements beyond
+  the shared ones.

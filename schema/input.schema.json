@@ -1,0 +1,367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Washington Apple Health for Adults renewal input",
+  "type": "object",
+  "properties": {
+    "renewer": {
+      "type": "object",
+      "properties": {
+        "renewal_month": {
+          "type": "string",
+          "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+          "description": "The month their coverage renews, like \"2027-03\". On their renewal letter, or at wahealthplanfinder.org."
+        },
+        "age": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Their age in years."
+        },
+        "pregnant": {
+          "type": "boolean",
+          "description": "Whether they're pregnant now."
+        },
+        "has_medicare": {
+          "type": "boolean",
+          "description": "Whether they have Medicare Part A or Part B."
+        },
+        "expected_unborn_children": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "If pregnant, how many babies they're expecting."
+        },
+        "expects_to_file_taxes": {
+          "type": "boolean",
+          "description": "Whether they expect to file a federal tax return for this year."
+        },
+        "expects_to_be_claimed_as_dependent": {
+          "type": "boolean",
+          "description": "Whether they expect someone else to claim them as a tax dependent this year."
+        },
+        "claimed_by_parent": {
+          "type": "boolean",
+          "description": "If someone claims them as a tax dependent: whether that person is their parent, including a stepparent or adoptive parent."
+        },
+        "claimed_by_noncustodial_parent": {
+          "type": "boolean",
+          "description": "If a parent claims them: whether that parent is a noncustodial parent (one they don't live with most of the time)."
+        },
+        "lives_with_both_parents": {
+          "type": "boolean",
+          "description": "Only for someone under 19: whether they live with both parents."
+        },
+        "parents_file_jointly": {
+          "type": "boolean",
+          "description": "Only for someone under 19 who lives with both parents: whether their parents file a joint tax return."
+        },
+        "required_to_file_taxes": {
+          "type": "boolean",
+          "description": "If they're a tax dependent: whether their own income is high enough that they're required to file a tax return."
+        },
+        "in_medical_institution_30_days": {
+          "type": "boolean",
+          "description": "Whether they've lived in a hospital, nursing facility, or inpatient psychiatric facility for 30 days in a row, or are expected to."
+        },
+        "immigration_status": {
+          "type": "string",
+          "enum": [
+            "us_citizen",
+            "us_national",
+            "qualifying_american_indian_born_abroad",
+            "lawful_permanent_resident",
+            "cuban_haitian_entrant",
+            "cofa_migrant",
+            "other_lawful_status",
+            "undocumented"
+          ],
+          "description": "Their citizenship or immigration status. Use other_lawful_status for refugees, asylees, parolees, and other lawful statuses that haven't become permanent residence."
+        },
+        "became_lpr_on": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "For lawful permanent residents: the date they became one, like \"2022-05-10\". On their green card."
+        },
+        "lpr_prior_status": {
+          "type": "string",
+          "enum": [
+            "refugee",
+            "asylee",
+            "amerasian",
+            "cuban_haitian_entrant",
+            "trafficking_victim",
+            "iraqi_or_afghan_special_immigrant",
+            "none"
+          ],
+          "description": "For lawful permanent residents: the status they had before, if it's one of these; otherwise \"none\"."
+        },
+        "armed_forces_connection": {
+          "type": "boolean",
+          "description": "Whether they're an active-duty service member or honorably discharged veteran, or the spouse or child of one."
+        },
+        "lives_in_washington": {
+          "type": "boolean",
+          "description": "Whether they live in Washington and plan to stay."
+        },
+        "has_ssn_or_applied_for_one": {
+          "type": "boolean",
+          "description": "Whether they have a Social Security number or have applied for one."
+        },
+        "enrolled_in_ssi_foster_care_or_adoption_support_coverage": {
+          "type": "boolean",
+          "description": "Whether they already get Apple Health through SSI, foster care, or adoption support."
+        },
+        "parent_or_caretaker_relative_of_dependent_child": {
+          "type": "boolean",
+          "description": "Whether they're the parent or caretaker relative of a child who lives with them and depends on them."
+        }
+      },
+      "description": "About the person renewing. Always send, as {} if nothing is known."
+    },
+    "household_members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "relationship_to_renewer": {
+            "type": "string",
+            "enum": [
+              "spouse",
+              "child",
+              "parent",
+              "sibling",
+              "other_relative",
+              "not_related"
+            ],
+            "description": "How this person is related to the renewer."
+          },
+          "lives_with_renewer": {
+            "type": "boolean",
+            "description": "Whether this person lives with the renewer."
+          },
+          "age": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "This person's age in years."
+          },
+          "claimed_as_dependent_by_renewer": {
+            "type": "boolean",
+            "description": "Whether the renewer expects to claim this person as a tax dependent."
+          },
+          "claims_renewer_as_dependent": {
+            "type": "boolean",
+            "description": "Whether this person expects to claim the renewer as a tax dependent."
+          },
+          "lives_with_renewers_claimer_as_spouse": {
+            "type": "boolean",
+            "description": "Whether this person is married to and lives with whoever claims the renewer as a tax dependent."
+          },
+          "claimed_by_renewers_claimer": {
+            "type": "boolean",
+            "description": "Whether whoever claims the renewer as a tax dependent also claims this person."
+          },
+          "pregnant": {
+            "type": "boolean",
+            "description": "Whether this person is pregnant now."
+          },
+          "expected_unborn_children": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "If pregnant, how many babies they're expecting."
+          },
+          "required_to_file_taxes": {
+            "type": "boolean",
+            "description": "For a child or tax dependent: whether their own income is high enough that they're required to file a tax return."
+          }
+        },
+        "description": "One person, described in relation to the renewer."
+      },
+      "description": "Other people who might be in their household for Apple Health. Include everyone they live with, and anyone who claims them as a tax dependent or whom that person claims, even if they live elsewhere. [] means nobody else. Leave this out until you've asked."
+    },
+    "months": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "description": "Which month, like \"2027-01\"."
+          },
+          "income_items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "household_member": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Whose income it is: the index of the person in household_members. Leave out for the renewer's own income."
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "wages",
+                    "self_employment",
+                    "unemployment",
+                    "social_security",
+                    "pension_or_retirement",
+                    "scholarship_for_living_expenses",
+                    "other_taxable",
+                    "educational_benefit_for_education_expenses",
+                    "work_study",
+                    "american_indian_alaska_native_excluded",
+                    "child_support_received",
+                    "ssi"
+                  ],
+                  "description": "What kind of income. Use educational_benefit_for_education_expenses for grants, loans, and scholarships spent on school; scholarship_for_living_expenses when spent on living costs."
+                },
+                "amount_cents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "The amount before taxes, in cents, as paid at the frequency given. Net earnings for self-employment."
+                },
+                "frequency": {
+                  "type": "string",
+                  "enum": [
+                    "monthly",
+                    "twice_monthly",
+                    "every_two_weeks",
+                    "weekly",
+                    "yearly",
+                    "one_time"
+                  ],
+                  "description": "How often it's paid. one_time for a single payment or lump sum that month."
+                }
+              },
+              "required": [
+                "type",
+                "amount_cents",
+                "frequency"
+              ],
+              "description": "One source of income."
+            },
+            "description": "Each source of income anyone in the household had that month. [] means no income."
+          },
+          "work_hours": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Hours the renewer worked that month, paid or unpaid, including work in exchange for things like rent."
+          },
+          "work_program_hours": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Hours in a job training or work program that month."
+          },
+          "community_service_hours": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Hours of community service that month, with a structured program like a food bank, school, or library. Court-ordered counts; political activity doesn't."
+          },
+          "education_program_hours": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "If in school less than half-time and the school doesn't use credits: hours in class or other school activities that month."
+          },
+          "credit_hours": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6,
+            "description": "If in school less than half-time and the school uses credits: how many credit hours, 0 to 6."
+          },
+          "doesnt_know_work_hours": {
+            "type": "boolean",
+            "description": "true if the renewer can't say how many hours they worked. Then hours are worked out from their pay."
+          },
+          "in_education_program": {
+            "type": "boolean",
+            "description": "Whether the renewer was enrolled in school or a training program that month."
+          },
+          "enrolled_at_least_half_time": {
+            "type": "boolean",
+            "description": "If in school: whether their school considers them at least half-time."
+          },
+          "school_uses_credit_hours": {
+            "type": "boolean",
+            "description": "If in school less than half-time: whether the school uses credit hours."
+          }
+        },
+        "description": "One month."
+      },
+      "description": "Income and activities, one entry per month. Needs the renewal month (for the income limit) and each of the 6 months before it (for the work requirement). Leave this out until you have at least one month."
+    },
+    "work_requirement": {
+      "type": "object",
+      "properties": {
+        "is_american_indian_alaska_native": {
+          "type": "boolean",
+          "description": "Whether they're American Indian or Alaska Native."
+        },
+        "is_former_foster_youth": {
+          "type": "boolean",
+          "description": "Whether they were in foster care."
+        },
+        "within_12_months_postpartum": {
+          "type": "boolean",
+          "description": "Whether they gave birth or had a pregnancy end within the last 12 months."
+        },
+        "cares_for_child_under_14": {
+          "type": "boolean",
+          "description": "Whether they're a parent, guardian, or caretaker of a child 13 or younger."
+        },
+        "cares_for_person_with_disability": {
+          "type": "boolean",
+          "description": "Whether they're a parent, guardian, caretaker, or family caregiver of someone with a disability."
+        },
+        "is_veteran_with_total_disability": {
+          "type": "boolean",
+          "description": "Whether they're a veteran with a total (100%) disability rating, or paid at the 100% rate."
+        },
+        "is_medically_frail": {
+          "type": "boolean",
+          "description": "Whether a disability or health condition makes it very hard for them to work: for example a substance use disorder, a serious mental illness, a condition that limits daily activities, or blindness."
+        },
+        "meets_snap_work_requirements": {
+          "type": "boolean",
+          "description": "Whether they get Basic Food (SNAP), have to meet its work requirements, and are meeting them. Just getting Basic Food isn't enough."
+        },
+        "complies_with_tanf_work_requirements": {
+          "type": "boolean",
+          "description": "Whether they get TANF cash assistance and are meeting its work requirements."
+        },
+        "in_drug_or_alcohol_treatment": {
+          "type": "boolean",
+          "description": "Whether they're in a drug or alcohol treatment program."
+        },
+        "incarcerated_or_released_within_3_months": {
+          "type": "boolean",
+          "description": "Whether they're in jail or prison, or were released within the last 3 months."
+        },
+        "enrolled_in_other_apple_health_program": {
+          "type": "boolean",
+          "description": "Whether they're in an Apple Health program other than Apple Health for Adults."
+        },
+        "hardship_inpatient_care": {
+          "type": "boolean",
+          "description": "Whether they spent time in a hospital, nursing home, or inpatient psychiatric care."
+        },
+        "hardship_travel_for_medical_care": {
+          "type": "boolean",
+          "description": "Whether they had to travel more than an hour from home for medical care for a serious condition, for themselves or a dependent."
+        },
+        "hardship_disaster_area": {
+          "type": "boolean",
+          "description": "Whether they live in a county under a federal disaster declaration."
+        },
+        "hardship_high_unemployment_county": {
+          "type": "boolean",
+          "description": "Whether they live in a county with very high unemployment. The state decides this; usually leave it out unless they've been told."
+        },
+        "is_seasonal_worker": {
+          "type": "boolean",
+          "description": "Whether their work is seasonal, like farm work in a growing season or retail work only during the holidays."
+        }
+      },
+      "description": "Exclusions and exemptions from the work requirement. Each one means \"in any of the 6 months before renewal.\" Always send, as {} if nothing is known."
+    }
+  },
+  "description": "What a person renewing Washington Apple Health for Adults has told us. Every field is optional: leave out anything\nyou don't know yet, and never send null. The graph's next_questions output says what to ask next.\nHash sections (renewer, work_requirement) should always be sent, as {} if empty. List sections (household_members,\nmonths) should be sent only once you know what's in them, because an empty list is an answer.\nMoney is integer cents. Months are \"YYYY-MM\"; dates are \"YYYY-MM-DD\".\nRecord only what the person says; the graph applies the rules."
+}

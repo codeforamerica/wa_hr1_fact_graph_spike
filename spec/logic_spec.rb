@@ -111,7 +111,7 @@ RSpec.describe WaHr1::Logic do
     it ".any_entity counts a dropped entity as unknown" do
       result = evaluate(input)[:summary][:any_month_met]
       expect(result).to unknown
-      expect(result.fact_dependency_unmet).to eq({months: [:met]})
+      expect(result.fact_dependency_unmet).to eq({months: [[:met, 1]]})
     end
 
     it ".any_entity is true when any entity is true, whatever the others are" do

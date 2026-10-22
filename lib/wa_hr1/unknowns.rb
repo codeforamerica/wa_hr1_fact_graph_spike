@@ -21,16 +21,23 @@ module WaHr1
         targets = entity_id.nil? ? value : value.slice(entity_id)
         targets.each { |id, entity_value| walk_value(results, entity_value, id, paths, visited) }
       else
-        walk_value(results, value, entity_id, paths, visited)
+        # A fact that isn't per-entity has no entity of its own, so its dependencies don't either.
+        walk_value(results, value, nil, paths, visited)
       end
     end
 
+    # An unknown names the facts it's waiting on as {module => [fact, ...]}. A fact is either a name,
+    # meaning the same entity as the fact we came from (or every entity, from a fact that isn't
+    # per-entity), or [name, entity_id] for one specific entity.
     def walk_value(results, value, entity_id, paths, visited)
       return unless value.is_a?(FactGraph::Error)
 
       paths.merge(value.fact_bad_inputs.keys)
       value.fact_dependency_unmet.each do |module_name, fact_names|
-        fact_names.each { |fact_name| walk(results, module_name, fact_name, entity_id, paths, visited) }
+        fact_names.each do |fact_name|
+          name, id = fact_name.is_a?(Array) ? fact_name : [fact_name, entity_id]
+          walk(results, module_name, name, id, paths, visited)
+        end
       end
     end
 
