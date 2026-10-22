@@ -1,0 +1,138 @@
+{
+  "renewer": {
+    "renewal_month": "2027-03",
+    "age": 24,
+    "pregnant": false,
+    "has_medicare": false,
+    "expects_to_file_taxes": true,
+    "expects_to_be_claimed_as_dependent": false,
+    "in_medical_institution_30_days": false,
+    "immigration_status": "us_citizen",
+    "lives_in_washington": true,
+    "has_ssn_or_applied_for_one": true,
+    "enrolled_in_ssi_foster_care_or_adoption_support_coverage": false,
+    "parent_or_caretaker_relative_of_dependent_child": false
+  },
+  "household_members": [],
+  "work_requirement": {
+    "is_american_indian_alaska_native": false,
+    "is_former_foster_youth": false,
+    "within_12_months_postpartum": false,
+    "cares_for_child_under_14": false,
+    "cares_for_person_with_disability": false,
+    "is_veteran_with_total_disability": false,
+    "is_medically_frail": false,
+    "meets_snap_work_requirements": false,
+    "complies_with_tanf_work_requirements": false,
+    "in_drug_or_alcohol_treatment": false,
+    "incarcerated_or_released_within_3_months": false,
+    "enrolled_in_other_apple_health_program": false,
+    "hardship_inpatient_care": false,
+    "hardship_travel_for_medical_care": false,
+    "hardship_disaster_area": false,
+    "hardship_high_unemployment_county": false,
+    "is_seasonal_worker": false
+  },
+  "months": [
+    {
+      "income_items": [
+        {
+          "type": "work_study",
+          "amount_cents": 40000,
+          "frequency": "monthly"
+        }
+      ],
+      "work_hours": 0,
+      "work_program_hours": 0,
+      "community_service_hours": 0,
+      "in_education_program": true,
+      "month": "2026-09",
+      "enrolled_at_least_half_time": true
+    },
+    {
+      "income_items": [
+        {
+          "type": "work_study",
+          "amount_cents": 40000,
+          "frequency": "monthly"
+        }
+      ],
+      "work_hours": 0,
+      "work_program_hours": 0,
+      "community_service_hours": 0,
+      "in_education_program": true,
+      "month": "2026-10",
+      "enrolled_at_least_half_time": true
+    },
+    {
+      "income_items": [
+        {
+          "type": "work_study",
+          "amount_cents": 40000,
+          "frequency": "monthly"
+        }
+      ],
+      "work_hours": 0,
+      "work_program_hours": 0,
+      "community_service_hours": 0,
+      "in_education_program": true,
+      "month": "2026-11",
+      "enrolled_at_least_half_time": true
+    },
+    {
+      "income_items": [
+        {
+          "type": "work_study",
+          "amount_cents": 40000,
+          "frequency": "monthly"
+        }
+      ],
+      "work_hours": 0,
+      "work_program_hours": 0,
+      "community_service_hours": 0,
+      "in_education_program": true,
+      "month": "2026-12",
+      "enrolled_at_least_half_time": true
+    },
+    {
+      "income_items": [
+        {
+          "type": "work_study",
+          "amount_cents": 40000,
+          "frequency": "monthly"
+        }
+      ],
+      "work_hours": 0,
+      "work_program_hours": 0,
+      "community_service_hours": 0,
+      "in_education_program": true,
+      "month": "2027-01",
+      "enrolled_at_least_half_time": true
+    },
+    {
+      "income_items": [
+        {
+          "type": "work_study",
+          "amount_cents": 40000,
+          "frequency": "monthly"
+        }
+      ],
+      "work_hours": 0,
+      "work_program_hours": 0,
+      "community_service_hours": 0,
+      "in_education_program": true,
+      "month": "2027-02",
+      "enrolled_at_least_half_time": true
+    },
+    {
+      "month": "2027-03",
+      "income_items": [
+        {
+          "type": "work_study",
+          "amount_cents": 40000,
+          "frequency": "monthly"
+        }
+      ]
+    }
+  ]
+}

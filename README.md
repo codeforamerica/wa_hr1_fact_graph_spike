@@ -20,6 +20,37 @@ bundle install
 bundle exec rspec
 ```
 
+## Trying it
+
+```sh
+bundle exec bin/evaluate examples/start.json
+bundle exec bin/evaluate examples/maya_claimed_by_parents.json
+echo '{"renewer": {"renewal_month": "2027-03", "age": 24}}' | bundle exec bin/evaluate
+bundle exec bin/evaluate --fact work_requirement.meets_work_requirement examples/maya_less_than_half_time.json
+```
+
+`bin/evaluate` reads renewal input as JSON (a file, or stdin) and writes JSON:
+
+| Field | What it is |
+|---|---|
+| `likely_eligible` | Apple Health for Adults: `true`, `false`, or `null` if we can't tell yet. |
+| `likely_eligible_for_family_coverage_instead` | `true` if they'd be considered for family coverage first, which has no work requirement. |
+| `next_questions` | The inputs still needed to decide the target fact (`likely_eligible` unless `--fact` says otherwise). Each has its `path`, a `status` of `missing` (not asked yet) or `invalid` (answered with something the graph can't use), and the graph's `messages`. |
+| `facts` | Every fact's value, for explaining an answer: unknowns are `null`, and per-person and per-month facts are arrays in the same order as the input lists. |
+
+### The input schema
+
+`schema/input.schema.json` is a JSON Schema for the input, with a description of each field written for the agent
+filling it in. It's generated from the graph's own input definitions (`bin/input-schema`), plus the descriptions in
+`lib/wa_hr1/input_descriptions.rb`. The tests fail if any input lacks a description or the checked-in copy is out of
+date. Regenerate it with:
+
+```sh
+bundle exec bin/input-schema > schema/input.schema.json
+```
+
+Nothing in the schema is required. A missing answer is a question to ask, and `next_questions` says which ones matter.
+
 ## Building the input
 
 The input has two kinds of sections, and they're treated differently (`lib/wa_hr1/input.rb`):
@@ -113,6 +144,11 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
     This predates our changes; fixed in codeforamerica/fact_graph#36.
 11. **Resolvers can't see which entity they're running for**, so a resolver can't report a bad input at its full
     path (like `[:months, 2, :credit_hours]`). Validate in the input schema instead, which reports the full path.
+12. **Some conditions are follow-ups, and naming every unknown asks them too early.** With immigration status unknown,
+    `all_of` also named the permanent-resident follow-ups. `gated_all_of` names only the first unknown, so follow-ups
+    wait for their gate; it's used where each condition only matters once the one before it is true.
+13. **dry-schema can emit JSON Schema**, so the input schema is generated from the graph and can't drift from it. It
+    needed small fixes: Ruby regex anchors, and dropping `required`.
 
 ## Policy findings
 

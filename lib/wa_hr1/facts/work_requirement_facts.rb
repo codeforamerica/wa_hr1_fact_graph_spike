@@ -186,14 +186,24 @@ module WorkRequirementFacts
         proc { data[:dependencies][:total_activity_hours] >= data[:dependencies][:min_monthly_hours] }
       end
 
-      fact :hours_short_of_minimum, per_entity: :months do
-        dependency :total_activity_hours
-        dependency :min_monthly_hours, from: :standards
-        proc { [data[:dependencies][:min_monthly_hours] - data[:dependencies][:total_activity_hours], 0].max }
-      end
-
       any_of_fact :meets_activity_requirement, :meets_income_minimum, :enrolled_half_time_or_more, :meets_hours_minimum,
         per_entity: :months
+
+      # More hours needed for this month to count: 0 if it already meets the requirement another way,
+      # like half-time enrollment, so an agent never tells a half-time student they're 80 hours short.
+      fact :hours_short_of_minimum, per_entity: :months, allow_unmet_dependencies: true do
+        dependency :meets_activity_requirement
+        dependency :total_activity_hours
+        dependency :min_monthly_hours, from: :standards
+
+        proc do
+          data in dependencies: {meets_activity_requirement:, total_activity_hours:, min_monthly_hours:}
+          next 0 if meets_activity_requirement == true
+          next total_activity_hours if unknown?(total_activity_hours)
+
+          [min_monthly_hours - total_activity_hours, 0].max
+        end
+      end
 
       gated_all_of_fact :meets_requirement_in_month, :in_lookback_window, :meets_activity_requirement,
         per_entity: :months
