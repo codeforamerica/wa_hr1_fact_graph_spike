@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/codeforamerica/fact_graph.git
-  revision: 9cfa7d6c8c14eabc49cd52c7e58c67f482441e17
-  ref: 9cfa7d6c8c14eabc49cd52c7e58c67f482441e17
+  revision: fbf722b9a656fa8406289206244141d5a6748ef9
+  ref: fbf722b9a656fa8406289206244141d5a6748ef9
   specs:
     fact_graph (0.1.0)
       activesupport (~> 8.0)

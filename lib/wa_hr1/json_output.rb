@@ -12,7 +12,8 @@ module WaHr1
 
     # input: a Hash with symbol keys, as from JSON.parse(..., symbolize_names: true).
     # target: the [module, fact] whose missing inputs become next_questions.
-    def evaluate(input, target: DEFAULT_TARGET)
+    # what_if: also try representative answers to each next question (WaHr1::WhatIf).
+    def evaluate(input, target: DEFAULT_TARGET, what_if: false)
       input = Input.with_sections(input)
       results = FactGraph::Evaluator.evaluate(input, graph_class: GRAPH)
       messages = FactGraph::Evaluator.input_errors(results)
@@ -24,7 +25,9 @@ module WaHr1
         likely_eligible: value(results.dig(:eligibility, :likely_eligible)),
         likely_eligible_for_family_coverage_instead: value(results.dig(:eligibility, :likely_eligible_for_family_coverage_instead)),
         target: target.join("."),
-        next_questions: Unknowns.missing_inputs(results, *target).map { |path| question(path, input, messages) },
+        next_questions: Unknowns.missing_inputs(results, *target).map do |path|
+          question(path, input, messages).merge(what_if: what_if ? WhatIf.outcomes(path, input, target) : nil)
+        end,
         facts: results.transform_values { |facts| facts.transform_values { value(_1) } }
       }
     end

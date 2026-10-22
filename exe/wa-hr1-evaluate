@@ -18,6 +18,7 @@ require_relative "../lib/wa_hr1"
 
 target = WaHr1::JsonOutput::DEFAULT_TARGET
 compact = false
+what_if = false
 begin
   OptionParser.new do |opts|
     opts.banner = "Usage: wa-hr1-evaluate [options] [input.json]"
@@ -25,6 +26,7 @@ begin
       target = fact.split(".", 2).map(&:to_sym)
     end
     opts.on("--compact", "Print JSON on one line") { compact = true }
+    opts.on("--what-if", "Try representative answers to each next question (slower)") { what_if = true }
   end.parse!
 rescue OptionParser::ParseError => e
   warn e.message
@@ -45,7 +47,7 @@ unless input.is_a?(Hash)
 end
 
 begin
-  output = WaHr1::JsonOutput.evaluate(input, target:)
+  output = WaHr1::JsonOutput.evaluate(input, target:, what_if:)
 rescue => e
   # The class and location only: messages can include input values.
   warn "Evaluation failed: #{e.class} at #{e.backtrace&.first}"

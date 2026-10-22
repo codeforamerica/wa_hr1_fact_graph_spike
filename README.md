@@ -38,6 +38,12 @@ bundle exec exe/wa-hr1-evaluate --fact work_requirement.meets_work_requirement e
 | `next_questions` | The inputs still needed to decide the target fact (`likely_eligible` unless `--fact` says otherwise). Each has its `path`, a `status` of `missing` (not asked yet) or `invalid` (answered with something the graph can't use), the graph's `messages`, and the input's `description` and `schema` (type, allowed values, list item structure) from the input schema. |
 | `facts` | Every fact's value, for explaining an answer: unknowns are `null`, and per-person and per-month facts are arrays in the same order as the input lists. |
 
+With `--what-if`, each next question also gets `what_if`: a few representative answers (yes and no; ages on either
+side of the rules; each immigration status; no income, low and high income; an upload that meets the work
+requirement or falls short), and for each, whether `likely_eligible` would be decided and how many questions would
+remain. An agent combines these with how likely each answer is for this person to choose the question worth asking
+next (`lib/wa_hr1/what_if.rb`). It evaluates the graph about 75 times, which takes about 0.25 s.
+
 Every output includes `protocol_version`. The command follows ADR-0003 in `samesite2026-app-02`:
 - It writes exactly one JSON object to stdout.
 - Diagnostics go to stderr and never include the input.
@@ -167,6 +173,9 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
     wait for their gate; it's used where each condition only matters once the one before it is true.
 13. **dry-schema can emit JSON Schema**, so the input schema is generated from the graph and can't drift from it. It
     needed small fixes: Ruby regex anchors, and dropping `required`.
+14. **fact_graph rebuilt every fact's validators on every evaluation.** That was 84% of evaluation time. Compiling each
+    definition once (codeforamerica/fact_graph#37) made one evaluation 7× faster (26.8 → 3.9 ms), which is what makes
+    trying answers to every open question affordable.
 
 ## Policy findings
 

@@ -23,4 +23,5 @@ require_relative "wa_hr1/graphs/states/wa"
 require_relative "wa_hr1/graphs/wa/income_standards_oct_2026"
 
 require_relative "wa_hr1/json_output"
+require_relative "wa_hr1/what_if"
 require_relative "wa_hr1/input_schema"
