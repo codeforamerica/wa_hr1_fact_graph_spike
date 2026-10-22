@@ -14,6 +14,8 @@ module FactGraphs
     include HouseholdFacts
     include IncomeFacts
     include WorkRequirementFacts
+    include ImmigrationFacts
+    include EligibilityFacts
 
     in_module :standards do
       constant(:work_requirement_start_date) { "2027-01-01" }

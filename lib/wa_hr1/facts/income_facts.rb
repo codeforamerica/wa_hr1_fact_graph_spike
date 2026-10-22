@@ -146,16 +146,12 @@ module IncomeFacts
     end
 
     in_module :income do
-      fact :renewal_month do
-        input [:renewer, :renewal_month], value: :string, format?: MONTH_FORMAT
-      end
-
       # Income for the renewal month: a point-in-time estimate (WAC 182-509-0310).
       fact :renewal_month_countable_income_cents, allow_unmet_dependencies: true do
         input :months do
           required(:months).array(:hash)
         end
-        dependency :renewal_month
+        dependency :renewal_month, from: :renewer
         dependency :month, from: :months
         dependency :countable_income_cents, from: :months
 

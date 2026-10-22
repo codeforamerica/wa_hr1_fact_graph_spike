@@ -6,6 +6,11 @@ module RenewerFacts
 
   included do
     in_module :renewer do
+      # The month coverage renews, like "2027-03".
+      fact :renewal_month do
+        input [:renewer, :renewal_month], value: :string, format?: /\A\d{4}-(0[1-9]|1[0-2])\z/
+      end
+
       fact :age do
         input [:renewer, :age], value: :integer, gteq?: 0
       end

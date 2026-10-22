@@ -20,6 +20,24 @@ bundle install
 bundle exec rspec
 ```
 
+## Building the input
+
+The input has two kinds of sections, and they're treated differently (`lib/wa_hr1/input.rb`):
+
+- **Hash sections (`renewer`, `work_requirement`): always send them, as `{}` if nothing is known.** Each key is a
+  separate question. If a section is missing entirely, every question in it fails as "the section is missing," and
+  the next-question walker can only report the section, not the questions in it. `WaHr1::Input.with_sections(input)`
+  adds any that are missing.
+- **List sections (`household_members`, `months`): send them only once you know what's in them.** An empty list is
+  an answer: `household_members: []` means nobody else is in the household. While a list is missing, the walker asks
+  for it.
+
+Other conventions:
+- Money is integer cents.
+- Months are `"YYYY-MM"` and dates are `"YYYY-MM-DD"`.
+- Enums are strings.
+- An income item without `household_member` is the renewer's.
+
 ## Design
 
 Sources are indexed in the app repo's `docs/README.md`. The main ones are the WAC rules in `docs/resources/wac-*.txt`,
@@ -37,17 +55,17 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
   - `FactGraphs::States::Wa`: Washington's choices.
   - `FactGraphs::Wa::IncomeStandardsOct2026`: one income-standards period, and the graph we evaluate.
 
-### Planned modules
+### Modules
 
 | Module | What it decides |
 |---|---|
 | `standards` | Constants: income limits, $580, 80 hours, the credit-hour table, the federal minimum wage. |
-| `general` | Age, Medicare, other mandatory programs, residency, SSN. |
+| `renewer` | What the renewer tells us about themselves, including the renewal month. |
 | `household` | Who's in the renewer's household (WAC 182-506-0010/-0012); household size; whose income counts (WAC 182-509-0360). |
 | `income` | Countable monthly income from tagged income items, including pay frequency (WAC 182-509-0310) and exclusions (0335, 0340); the income limit. |
 | `immigration` | H.R. 1's qualified noncitizen definition, the 5-year bar and its exemptions. |
 | `work_requirement` | Exclusions, exemptions, and per-month activities, including the seasonal-worker average and hours from income. |
-| `eligibility` | `likely_eligible`, and `likely_eligible_for_family_coverage_instead`. |
+| `eligibility` | Age, Medicare, other mandatory coverage; `likely_eligible` (Apple Health for Adults) and `likely_eligible_for_family_coverage_instead`. |
 
 ### Shortcuts
 
@@ -114,3 +132,12 @@ HCA's income standards chart, and HCA's August 2026 analysis of the work require
 - **"The preceding 6 months" for seasonal workers excludes the month itself.**
 - **The first renewal with a work requirement is February 2027** (HCA's state options table).
 - **Credits are limited to 0–6 when enrolled less than half-time**, matching HCA's table.
+- **The 5-year bar is counted in months.** Someone who became an LPR in March 2022 meets it at a March 2027 renewal,
+  whatever the day.
+- **Cuban/Haitian entrants and COFA migrants aren't subject to the 5-year bar.** HCA's fact sheet lists Cuban/Haitian
+  entrants as exempt, and federal law has exempted COFA migrants since 2020.
+- **Someone considered for family coverage first isn't `likely_eligible` for the adult program**, even when they'd
+  otherwise qualify. `likely_eligible_for_family_coverage_instead` is the fact to show them.
+- **Not modeled:** SSN exceptions, residency intent and institutional residency, incarceration (Washington suspends
+  coverage rather than ending it), assigning medical support rights, and family coverage's own requirements beyond
+  the shared ones.

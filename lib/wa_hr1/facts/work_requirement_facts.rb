@@ -38,17 +38,6 @@ module WorkRequirementFacts
 
   EARNED_INCOME_TYPES = %w[wages self_employment].freeze
 
-  def self.month_index(month)
-    year, month_number = month.split("-").map(&:to_i)
-    year * 12 + month_number - 1
-  end
-
-  # The `count` months before `month`, oldest first.
-  def self.months_before(month, count)
-    index = month_index(month)
-    count.downto(1).map { |back| (index - back).divmod(12).then { |year, m| format("%04d-%02d", year, m + 1) } }
-  end
-
   included do
     in_module :work_requirement do
       (EXCLUSION_INPUTS + EXEMPTION_INPUTS + [:is_seasonal_worker]).each do |name|
@@ -58,7 +47,7 @@ module WorkRequirementFacts
       end
 
       fact :applies_to_renewal do
-        dependency :renewal_month, from: :income
+        dependency :renewal_month, from: :renewer
         dependency :first_renewal_month_with_work_requirement, from: :standards
         proc { data[:dependencies][:renewal_month] >= data[:dependencies][:first_renewal_month_with_work_requirement] }
       end
@@ -107,12 +96,12 @@ module WorkRequirementFacts
 
       fact :in_lookback_window, per_entity: :months do
         dependency :month
-        dependency :renewal_month, from: :income
+        dependency :renewal_month, from: :renewer
         dependency :renewal_lookback_months, from: :standards
 
         proc do
           data in dependencies: {month:, renewal_month:, renewal_lookback_months:}
-          distance = WorkRequirementFacts.month_index(renewal_month) - WorkRequirementFacts.month_index(month)
+          distance = WaHr1::Months.index(renewal_month) - WaHr1::Months.index(month)
           distance.between?(1, renewal_lookback_months)
         end
       end
@@ -213,12 +202,12 @@ module WorkRequirementFacts
     in_module :work_requirement do
       # The month strings that make up the lookback window, for checking that each was reported.
       fact :lookback_months do
-        dependency :renewal_month, from: :income
+        dependency :renewal_month, from: :renewer
         dependency :renewal_lookback_months, from: :standards
 
         proc do
           data in dependencies: {renewal_month:, renewal_lookback_months:}
-          WorkRequirementFacts.months_before(renewal_month, renewal_lookback_months)
+          WaHr1::Months.before(renewal_month, renewal_lookback_months)
         end
       end
 
@@ -264,7 +253,7 @@ module WorkRequirementFacts
           next deps[:lookback_months] if unknown?(deps[:lookback_months])
 
           month_results = deps[:lookback_months].map do |lookback_month|
-            prior = WorkRequirementFacts.months_before(lookback_month, deps[:seasonal_worker_average_months])
+            prior = WaHr1::Months.before(lookback_month, deps[:seasonal_worker_average_months])
             missing = prior.reject { deps[:month].value?(_1) }
             next FactGraph::Error.new(fact_bad_inputs: {[:months] => Set["needs #{missing.join(", ")}"]}, fact_dependency_unmet: {}) if missing.any?
 
