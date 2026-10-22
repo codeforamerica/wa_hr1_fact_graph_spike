@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Prints the JSON Schema for wa-hr1-evaluate's input, generated from the fact graph.
+#
+#   wa-hr1-input-schema > schema/input.schema.json
+
+require_relative "../lib/wa_hr1"
+
+puts JSON.pretty_generate(WaHr1::InputSchema.generate(WaHr1::JsonOutput::GRAPH))

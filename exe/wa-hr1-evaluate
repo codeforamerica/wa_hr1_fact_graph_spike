@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Evaluates a renewal against Washington's Apple Health for Adults fact graph.
+#
+#   wa-hr1-evaluate examples/maya_claimed_by_parents.json
+#   echo '{"renewer": {"renewal_month": "2027-03"}}' | wa-hr1-evaluate
+#   wa-hr1-evaluate --fact work_requirement.meets_work_requirement examples/eligible_student.json
+#
+# Reads one JSON object from the file given, or from stdin, and writes exactly one JSON object to
+# stdout. Follows ADR-0003 in samesite2026-app-02: diagnostics go to stderr and never include the
+# input, and any failure exits nonzero with nothing on stdout.
+#
+# Exit codes: 0 success, 1 bad input or arguments, 2 unexpected error.
+
+require "optparse"
+require_relative "../lib/wa_hr1"
+
+target = WaHr1::JsonOutput::DEFAULT_TARGET
+compact = false
+begin
+  OptionParser.new do |opts|
+    opts.banner = "Usage: wa-hr1-evaluate [options] [input.json]"
+    opts.on("--fact MODULE.FACT", "Fact whose missing inputs become next_questions (default: eligibility.likely_eligible)") do |fact|
+      target = fact.split(".", 2).map(&:to_sym)
+    end
+    opts.on("--compact", "Print JSON on one line") { compact = true }
+  end.parse!
+rescue OptionParser::ParseError => e
+  warn e.message
+  exit 1
+end
+
+begin
+  input = JSON.parse(ARGF.read, symbolize_names: true)
+rescue JSON::ParserError
+  # The parser's message can quote the input, so it isn't repeated here.
+  warn "Input isn't valid JSON"
+  exit 1
+end
+
+unless input.is_a?(Hash)
+  warn "Input must be a JSON object"
+  exit 1
+end
+
+begin
+  output = WaHr1::JsonOutput.evaluate(input, target:)
+rescue => e
+  # The class and location only: messages can include input values.
+  warn "Evaluation failed: #{e.class} at #{e.backtrace&.first}"
+  exit 2
+end
+
+puts compact ? JSON.generate(output) : JSON.pretty_generate(output)

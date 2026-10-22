@@ -12,8 +12,8 @@ How this would plug into the Python app is a separate decision for after the spi
 
 ## Running it
 
-Needs Ruby 4.0.6 and a checkout of `fact_graph` next to this directory, on the `fix-query-helpers-per-entity` branch
-(codeforamerica/fact_graph#36).
+Needs Ruby 4.0.6. Bundler fetches `fact_graph` from GitHub, pinned to the head of the `fix-query-helpers-per-entity`
+branch (codeforamerica/fact_graph#36), which this needs until that PR merges.
 
 ```sh
 bundle install
@@ -23,13 +23,13 @@ bundle exec rspec
 ## Trying it
 
 ```sh
-bundle exec bin/evaluate examples/start.json
-bundle exec bin/evaluate examples/maya_claimed_by_parents.json
-echo '{"renewer": {"renewal_month": "2027-03", "age": 24}}' | bundle exec bin/evaluate
-bundle exec bin/evaluate --fact work_requirement.meets_work_requirement examples/maya_less_than_half_time.json
+bundle exec exe/wa-hr1-evaluate examples/start.json
+bundle exec exe/wa-hr1-evaluate examples/maya_claimed_by_parents.json
+echo '{"renewer": {"renewal_month": "2027-03", "age": 24}}' | bundle exec exe/wa-hr1-evaluate
+bundle exec exe/wa-hr1-evaluate --fact work_requirement.meets_work_requirement examples/maya_less_than_half_time.json
 ```
 
-`bin/evaluate` reads renewal input as JSON (a file, or stdin) and writes JSON:
+`wa-hr1-evaluate` reads renewal input as JSON (a file, or stdin) and writes JSON:
 
 | Field | What it is |
 |---|---|
@@ -38,15 +38,33 @@ bundle exec bin/evaluate --fact work_requirement.meets_work_requirement examples
 | `next_questions` | The inputs still needed to decide the target fact (`likely_eligible` unless `--fact` says otherwise). Each has its `path`, a `status` of `missing` (not asked yet) or `invalid` (answered with something the graph can't use), and the graph's `messages`. |
 | `facts` | Every fact's value, for explaining an answer: unknowns are `null`, and per-person and per-month facts are arrays in the same order as the input lists. |
 
+Every output includes `protocol_version`. The command follows ADR-0003 in `samesite2026-app-02`:
+- It writes exactly one JSON object to stdout.
+- Diagnostics go to stderr and never include the input.
+- Any failure exits nonzero with nothing on stdout: 1 for bad input or arguments, 2 for an unexpected error.
+
+### Using it as a gem
+
+It's packaged as the `wa_hr1_fact_graph` gem, with the `wa-hr1-evaluate` and `wa-hr1-input-schema` commands. It isn't
+on rubygems.org, and neither is `fact_graph`, so a project's Gemfile names both by Git commit:
+
+```ruby
+gem "wa_hr1_fact_graph", github: "codeforamerica/wa_hr1_fact_graph_spike", ref: "<commit>"
+gem "fact_graph", github: "codeforamerica/fact_graph", ref: "9cfa7d6c8c14eabc49cd52c7e58c67f482441e17"
+```
+
+Then `bundle exec wa-hr1-evaluate` runs it. Bump `WaHr1::PROTOCOL_VERSION` in `lib/wa_hr1/version.rb` whenever the
+input or output changes incompatibly.
+
 ### The input schema
 
 `schema/input.schema.json` is a JSON Schema for the input, with a description of each field written for the agent
-filling it in. It's generated from the graph's own input definitions (`bin/input-schema`), plus the descriptions in
+filling it in. It's generated from the graph's own input definitions (`wa-hr1-input-schema`), plus the descriptions in
 `lib/wa_hr1/input_descriptions.rb`. The tests fail if any input lacks a description or the checked-in copy is out of
 date. Regenerate it with:
 
 ```sh
-bundle exec bin/input-schema > schema/input.schema.json
+bundle exec exe/wa-hr1-input-schema > schema/input.schema.json
 ```
 
 Nothing in the schema is required. A missing answer is a question to ask, and `next_questions` says which ones matter.

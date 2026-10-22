@@ -1,9 +1,20 @@
-PATH
-  remote: ../fact_graph
+GIT
+  remote: https://github.com/codeforamerica/fact_graph.git
+  revision: 9cfa7d6c8c14eabc49cd52c7e58c67f482441e17
+  ref: 9cfa7d6c8c14eabc49cd52c7e58c67f482441e17
   specs:
     fact_graph (0.1.0)
       activesupport (~> 8.0)
       dry-schema (~> 1.13)
+
+PATH
+  remote: .
+  specs:
+    wa_hr1_fact_graph (0.1.0)
+      activesupport (~> 8.0)
+      dry-schema (~> 1.13)
+      fact_graph (~> 0.1)
+      json (>= 2.0)
 
 GEM
   remote: https://rubygems.org/
@@ -90,6 +101,7 @@ PLATFORMS
 DEPENDENCIES
   fact_graph!
   rspec (~> 3.13)
+  wa_hr1_fact_graph!
 
 CHECKSUMS
   activesupport (8.1.4) sha256=891dd3fe43c4fc8391934b237b1189bb1f661c932a84a840043db9d46a4e80df
@@ -121,6 +133,7 @@ CHECKSUMS
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
   uri (1.1.2) sha256=89292e98eabbef6248b0a0ed5e7e398e152f83f17560023a6d94a7f492b169fb
+  wa_hr1_fact_graph (0.1.0)
   zeitwerk (2.8.3) sha256=2c85125a8467ce069e20123d1e709a08955c9d29c118c25b46b7b7fafdbb92e5
 
 BUNDLED WITH

@@ -18,6 +18,7 @@ module WaHr1
       messages = FactGraph::Evaluator.input_errors(results)
 
       {
+        protocol_version: PROTOCOL_VERSION,
         graph: GRAPH.name,
         standards_effective: results.dig(:standards, :standards_effective),
         likely_eligible: value(results.dig(:eligibility, :likely_eligible)),
