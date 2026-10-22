@@ -57,7 +57,7 @@ module WorkRequirementFacts
         proc { data[:dependencies][:age] < 26 }
       end
 
-      all_of_fact :is_former_foster_youth_under_26, :is_former_foster_youth, :under_26
+      gated_all_of_fact :is_former_foster_youth_under_26, :is_former_foster_youth, :under_26
 
       any_of_fact :pregnant_or_postpartum, dep(:pregnant, from: :renewer), :within_12_months_postpartum
 
@@ -141,7 +141,7 @@ module WorkRequirementFacts
         end
       end
 
-      all_of_fact :enrolled_half_time_or_more, :in_education_program, :enrolled_at_least_half_time,
+      gated_all_of_fact :enrolled_half_time_or_more, :in_education_program, :enrolled_at_least_half_time,
         per_entity: :months
 
       # Education hours, for combining with other activities when enrolled less than half-time
@@ -195,7 +195,7 @@ module WorkRequirementFacts
       any_of_fact :meets_activity_requirement, :meets_income_minimum, :enrolled_half_time_or_more, :meets_hours_minimum,
         per_entity: :months
 
-      all_of_fact :meets_requirement_in_month, :in_lookback_window, :meets_activity_requirement,
+      gated_all_of_fact :meets_requirement_in_month, :in_lookback_window, :meets_activity_requirement,
         per_entity: :months
     end
 
@@ -268,7 +268,7 @@ module WorkRequirementFacts
         end
       end
 
-      all_of_fact :meets_seasonal_worker_income, :is_seasonal_worker, :seasonal_average_meets_income_minimum
+      gated_all_of_fact :meets_seasonal_worker_income, :is_seasonal_worker, :seasonal_average_meets_income_minimum
 
       any_of_fact :meets_work_requirement,
         no(:applies_to_renewal),

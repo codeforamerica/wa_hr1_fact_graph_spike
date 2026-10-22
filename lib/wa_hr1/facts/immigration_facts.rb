@@ -83,7 +83,7 @@ module ImmigrationFacts
         :prior_status_exempt_from_five_year_bar,
         dep(:armed_forces_connection, from: :renewer)
 
-      all_of_fact :qualifies_as_lpr, :is_lawful_permanent_resident, :meets_or_exempt_from_five_year_bar
+      gated_all_of_fact :qualifies_as_lpr, :is_lawful_permanent_resident, :meets_or_exempt_from_five_year_bar
 
       # Cuban/Haitian entrants are exempt from the 5-year bar, and COFA migrants aren't subject to it.
       any_of_fact :meets_citizenship_or_immigration,

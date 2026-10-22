@@ -8,6 +8,8 @@ module WaHr1
   #     no(:expects_to_be_claimed_as_dependent, from: :renewer)
   #
   # A bare symbol is a dependency in the same module. Pass per_entity: to make a per-entity fact.
+  # Use gated_all_of_fact when each dependency is a follow-up to the ones before it (see
+  # WaHr1::Logic.gated_all_of); then the order of dependencies is the order of questions.
   module Macros
     def dep(fact, from: nil) = {fact:, from:, negate: false}
 
@@ -16,6 +18,8 @@ module WaHr1
     def any_of_fact(name, *deps, **) = combination_fact(name, :any_of, deps, **)
 
     def all_of_fact(name, *deps, **) = combination_fact(name, :all_of, deps, **)
+
+    def gated_all_of_fact(name, *deps, **) = combination_fact(name, :gated_all_of, deps, **)
 
     private
 

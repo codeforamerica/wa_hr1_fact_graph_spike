@@ -140,11 +140,13 @@ RSpec.describe IncomeFacts do
       }
     end
 
-    it "asks about only the child who has income" do
-      expect(missing(:income, :renewal_month_countable_income_cents)).to contain_exactly(
-        [:household_members, 1, :claimed_as_dependent_by_renewer],
-        [:household_members, 1, :required_to_file_taxes]
-      )
+    it "asks about only the child who has income, starting with whether they're in the household" do
+      expect(missing(:income, :renewal_month_countable_income_cents)).to eq Set[[:household_members, 1, :claimed_as_dependent_by_renewer]]
+    end
+
+    it "then asks whether that child has to file taxes" do
+      input[:household_members][1][:claimed_as_dependent_by_renewer] = true
+      expect(missing(:income, :renewal_month_countable_income_cents)).to eq Set[[:household_members, 1, :required_to_file_taxes]]
     end
 
     it "asks for the renewal month's income when it's missing" do

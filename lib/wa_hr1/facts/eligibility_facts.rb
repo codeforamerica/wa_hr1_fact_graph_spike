@@ -50,7 +50,7 @@ module EligibilityFacts
 
       # A shortcut: we don't model family coverage, only flag when someone would be considered for it
       # first. Family coverage has no work requirement.
-      all_of_fact :considered_for_family_coverage_first,
+      gated_all_of_fact :considered_for_family_coverage_first,
         dep(:parent_or_caretaker_relative_of_dependent_child, from: :renewer),
         dep(:meets_family_income_limit, from: :income)
 

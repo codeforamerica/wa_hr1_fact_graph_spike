@@ -26,12 +26,12 @@ module HouseholdFacts
         dep(:claimed_by_noncustodial_parent, from: :renewer),
         :renewer_under_19_with_parents_filing_separately
 
-      all_of_fact :renewer_under_19_with_parents_filing_separately,
+      gated_all_of_fact :renewer_under_19_with_parents_filing_separately,
         dep(:under_19, from: :renewer),
         dep(:lives_with_both_parents, from: :renewer),
         no(:parents_file_jointly, from: :renewer)
 
-      all_of_fact :renewer_uses_tax_dependent_rules,
+      gated_all_of_fact :renewer_uses_tax_dependent_rules,
         dep(:expects_to_be_claimed_as_dependent, from: :renewer),
         no(:renewer_meets_tax_dependent_exception)
 
@@ -43,12 +43,12 @@ module HouseholdFacts
         no(:expects_to_file_taxes, from: :renewer),
         no(:expects_to_be_claimed_as_dependent, from: :renewer)
 
-      all_of_fact :renewer_is_tax_dependent_treated_as_nonfiler,
+      gated_all_of_fact :renewer_is_tax_dependent_treated_as_nonfiler,
         dep(:expects_to_be_claimed_as_dependent, from: :renewer),
         :renewer_meets_tax_dependent_exception
 
       # A nonfiler under 19 also has their parents and young siblings in their household.
-      all_of_fact :renewer_is_nonfiler_under_19,
+      gated_all_of_fact :renewer_is_nonfiler_under_19,
         :renewer_uses_nonfiler_rules,
         dep(:under_19, from: :renewer)
 
@@ -117,46 +117,46 @@ module HouseholdFacts
       end
 
       # Each way someone can be in the renewer's household
-      all_of_fact :in_household_as_spouse, :is_spouse, :lives_with_renewer,
+      gated_all_of_fact :in_household_as_spouse, :is_spouse, :lives_with_renewer,
         per_entity: :household_members
 
       # A spouse can't be a tax dependent, so we never ask whether the renewer claims theirs.
-      all_of_fact :in_household_as_renewers_tax_dependent,
+      gated_all_of_fact :in_household_as_renewers_tax_dependent,
         dep(:renewer_uses_tax_filer_rules, from: :household),
         no(:is_spouse),
         :claimed_as_dependent_by_renewer,
         per_entity: :household_members
 
-      all_of_fact :in_household_as_renewers_claimer,
+      gated_all_of_fact :in_household_as_renewers_claimer,
         dep(:renewer_uses_tax_dependent_rules, from: :household),
         :claims_renewer_as_dependent,
         per_entity: :household_members
 
-      all_of_fact :in_household_as_renewers_claimers_spouse,
+      gated_all_of_fact :in_household_as_renewers_claimers_spouse,
         dep(:renewer_uses_tax_dependent_rules, from: :household),
         :lives_with_renewers_claimer_as_spouse,
         per_entity: :household_members
 
       # The claimer and the claimer's spouse can't be the claimer's tax dependents. Ruling them out
       # first means we never ask whether someone claims their own spouse.
-      all_of_fact :in_household_as_renewers_claimers_tax_dependent,
+      gated_all_of_fact :in_household_as_renewers_claimers_tax_dependent,
         dep(:renewer_uses_tax_dependent_rules, from: :household),
         no(:claims_renewer_as_dependent),
         no(:lives_with_renewers_claimer_as_spouse),
         :claimed_by_renewers_claimer,
         per_entity: :household_members
 
-      all_of_fact :in_household_as_nonfilers_child,
+      gated_all_of_fact :in_household_as_nonfilers_child,
         dep(:renewer_uses_nonfiler_rules, from: :household),
         :is_child, :lives_with_renewer, :under_19,
         per_entity: :household_members
 
-      all_of_fact :in_household_as_nonfilers_parent,
+      gated_all_of_fact :in_household_as_nonfilers_parent,
         dep(:renewer_is_nonfiler_under_19, from: :household),
         :is_parent, :lives_with_renewer,
         per_entity: :household_members
 
-      all_of_fact :in_household_as_nonfilers_sibling,
+      gated_all_of_fact :in_household_as_nonfilers_sibling,
         dep(:renewer_is_nonfiler_under_19, from: :household),
         :is_sibling, :lives_with_renewer, :under_19,
         per_entity: :household_members
@@ -207,7 +207,7 @@ module HouseholdFacts
         :required_to_file_taxes,
         per_entity: :household_members
 
-      all_of_fact :income_counts, :in_household, :income_counts_if_in_household,
+      gated_all_of_fact :income_counts, :in_household, :income_counts_if_in_household,
         per_entity: :household_members
     end
 

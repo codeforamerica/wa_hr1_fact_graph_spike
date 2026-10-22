@@ -43,6 +43,18 @@ module WaHr1
       all_of(with_missing_entities(values_by_id, entity_ids, fact))
     end
 
+    # Like all_of, but when the answer is unknown it names only the first unknown value. For
+    # conditions that are follow-ups to the ones before them, like "is an LPR" then "has been one for
+    # 5 years": the follow-up isn't worth asking until its gate is known to be true. Still false as
+    # soon as any value is known to be false.
+    def gated_all_of(values)
+      values = check_booleans(values)
+      return false if values.any?(false)
+      return true if values.all?(true)
+
+      values.find { unknown?(_1) }
+    end
+
     # Not, keeping unknowns unknown.
     def negate(value) = unknown?(value) ? value : !check_booleans([value]).first
 
